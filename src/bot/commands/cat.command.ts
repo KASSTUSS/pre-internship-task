@@ -1,6 +1,6 @@
-import { Telegraf, Context, Markup } from "telegraf";
-import { Command } from "./command.class";
-import axios from "axios";
+import { Telegraf, Context } from 'telegraf';
+import { Command } from './command.class';
+import { CatService } from '../../services/cat.service';
 
 export class CatCommand extends Command {
   constructor(bot: Telegraf<Context>) {
@@ -8,19 +8,16 @@ export class CatCommand extends Command {
   }
 
   handle(): void {
-    this.bot.command('cat', async (ctx) => {
-      await ctx.replyWithPhoto(await getCatPhoto(), 
-        Markup.keyboard([
-          ['/cat', '/dog'],
-          ['/places', '/weather_subcribtion', '/task_manager'],
-        ])
-        .oneTime()
-        .resize())
-      });
+    this.bot.command('cat', async (ctx: Context) => {
+      try {
+        const catImageUrl = await new CatService().getRandomCatImage();
+        await ctx.replyWithPhoto(catImageUrl);
+      } catch (error) {
+        console.error('Error fetching cat image:', error);
+        await ctx.reply(
+          "Sorry, I couldn't fetch a cat image at the moment. Please try again later.",
+        );
+      }
+    });
   }
-}
-
-async function getCatPhoto(): Promise<string> {
-  const responce: string = ((await axios.get('https://api.thedogapi.com/v1/images/search')).data[0].url);
-  return responce;
 }

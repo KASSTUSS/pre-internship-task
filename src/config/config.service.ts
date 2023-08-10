@@ -1,5 +1,5 @@
-import { config, DotenvParseOutput } from 'dotenv';
-import { IConfigService } from './config.interface';
+import { config, DotenvParseOutput } from "dotenv";
+import { IConfigService } from "./config.interface";
 
 export class ConfigService implements IConfigService {
   private config: DotenvParseOutput;
@@ -7,10 +7,10 @@ export class ConfigService implements IConfigService {
     const { error, parsed } = config();
 
     if (error) {
-      throw new Error('File .env is not founded');
+      throw new Error("File .env is not founded");
     }
     if (!parsed) {
-      throw new Error('File .env is empty');
+      throw new Error("File .env is empty");
     }
 
     this.config = parsed;
@@ -20,7 +20,7 @@ export class ConfigService implements IConfigService {
     const res = this.config[key];
 
     if (!res) {
-      throw new Error('No such key');
+      throw new Error("No such key");
     }
 
     return res;

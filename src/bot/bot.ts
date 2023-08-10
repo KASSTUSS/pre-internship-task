@@ -1,6 +1,6 @@
-import { Telegraf, session, Context } from 'telegraf';
-import { Command, StartCommand, HelpCommand } from './commands';
-import { IBotConfig } from '../config/bot.config';
+import { Telegraf, session, Context } from "telegraf";
+import { Command, StartCommand, HelpCommand, CatCommand, DogCommand } from './commands';
+import { IBotConfig } from "../config/bot.config";
 
 export class Bot {
   private bot: Telegraf<Context>;
@@ -11,11 +11,16 @@ export class Bot {
     this.bot.use(session());
   }
 
-  /**
-   * Initialize and start telegram bot.
-   */
+  /** 
+  * Initialize and start telegram bot.
+  */
   start() {
-    this.commands = [new StartCommand(this.bot), new HelpCommand(this.bot)];
+    this.commands = [
+        new StartCommand(this.bot), 
+        new HelpCommand(this.bot),
+        new CatCommand(this.bot),
+        new DogCommand(this.bot),
+    ];
 
     for (const command of this.commands) {
       command.handle();

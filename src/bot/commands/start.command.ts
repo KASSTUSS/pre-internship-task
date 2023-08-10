@@ -1,5 +1,5 @@
-import { Markup, Telegraf, Context } from 'telegraf';
-import { Command } from './command.class';
+import { Markup, Telegraf, Context } from "telegraf";
+import { Command } from "./command.class";
 
 export class StartCommand extends Command {
   constructor(bot: Telegraf<Context>) {
@@ -7,7 +7,7 @@ export class StartCommand extends Command {
   }
 
   handle(): void {
-    this.bot.start(ctx => {
+    this.bot.start((ctx) => {
       ctx.reply(
         `Привет! Я очень полезный бот, благодаря мне ты можешь:
  • получить фото котика;
@@ -16,7 +16,7 @@ export class StartCommand extends Command {
  • подписаться на уведомления о погоде в любом городе;
  • управлять своими задачами и напоминаниями
  Чтобы узнать больше введите /help`,
-        Markup.keyboard(['/help']).oneTime().resize(),
+        Markup.keyboard(["/help"]).oneTime().resize()
       );
     });
   }

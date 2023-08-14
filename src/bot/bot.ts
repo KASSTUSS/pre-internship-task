@@ -6,10 +6,12 @@ import {
   CatCommand,
   DogCommand,
   PlacesCommand,
+  WeatherCommand,
 } from './commands';
 import { IBotConfig } from '../config/bot.config';
 import { PlacesScene } from './scenes/places.scene';
 import { IContext } from './context/context.interface';
+import { WeatherScene } from './scenes/weather.scene';
 
 export class Bot {
   private bot: Telegraf<IContext>;
@@ -24,7 +26,7 @@ export class Bot {
    * Initialize and start telegram bot.
    */
   start() {
-    const stage = new Scenes.Stage<IContext>([PlacesScene]);
+    const stage = new Scenes.Stage<IContext>([PlacesScene, WeatherScene]);
     this.bot.use(stage.middleware());
 
     this.commands = [
@@ -33,6 +35,7 @@ export class Bot {
       new CatCommand(this.bot),
       new DogCommand(this.bot),
       new PlacesCommand(this.bot),
+      new WeatherCommand(this.bot),
     ];
 
     for (const command of this.commands) {

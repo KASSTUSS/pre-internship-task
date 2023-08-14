@@ -12,7 +12,7 @@ export class PlacesService {
   private token: string;
 
   constructor() {
-    this.token = OpenTripMapAPIConfig.openTripMap_TOKEN;
+    this.token = OpenTripMapAPIConfig.openTripMap_APIKEY;
   }
 
   /**

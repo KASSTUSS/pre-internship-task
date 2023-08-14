@@ -1,9 +1,9 @@
 import { ConfigService } from './config.service';
 
 export interface IOpenTripMapAPIConfig {
-  readonly openTripMap_TOKEN: string;
+  readonly openTripMap_APIKEY: string;
 }
 
 export const OpenTripMapAPIConfig: IOpenTripMapAPIConfig = {
-  openTripMap_TOKEN: new ConfigService().get('OPENTRIPMAP_TOKEN'),
+  openTripMap_APIKEY: new ConfigService().get('OPENTRIPMAP_APIKEY'),
 };

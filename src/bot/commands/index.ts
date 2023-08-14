@@ -4,6 +4,7 @@ import { CatCommand } from './cat.command';
 import { DogCommand } from './dog.command';
 import { PlacesCommand } from './places.command';
 import { Command } from './command.class';
+import { WeatherCommand } from './weather.command';
 
 export {
   Command,
@@ -12,4 +13,5 @@ export {
   CatCommand,
   DogCommand,
   PlacesCommand,
+  WeatherCommand,
 };

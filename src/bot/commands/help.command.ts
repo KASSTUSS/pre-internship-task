@@ -1,13 +1,14 @@
-import { Markup, Telegraf, Context } from 'telegraf';
+import { Markup, Telegraf } from 'telegraf';
 import { Command } from './command.class';
+import { IContext } from '../context/context.interface';
 
 export class HelpCommand extends Command {
-  constructor(bot: Telegraf<Context>) {
+  constructor(bot: Telegraf<IContext>) {
     super(bot);
   }
 
   handle(): void {
-    this.bot.help(ctx => {
+    this.bot.help((ctx: IContext) => {
       ctx.reply(
         `Привет! Я очень полезный бот, благодаря мне ты можешь:
  /cat - получить фото котика;

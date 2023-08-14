@@ -1,14 +1,15 @@
-import { Telegraf, Context } from 'telegraf';
+import { Telegraf } from 'telegraf';
 import { Command } from './command.class';
 import { CatService } from '../../services/cat.service';
+import { IContext } from '../context/context.interface';
 
 export class CatCommand extends Command {
-  constructor(bot: Telegraf<Context>) {
+  constructor(bot: Telegraf<IContext>) {
     super(bot);
   }
 
   handle(): void {
-    this.bot.command('cat', async (ctx: Context) => {
+    this.bot.command('cat', async (ctx: IContext) => {
       try {
         const catImageUrl = await new CatService().getRandomCatImage();
         await ctx.replyWithPhoto(catImageUrl);

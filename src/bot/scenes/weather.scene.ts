@@ -21,27 +21,28 @@ export const WeatherScene = new Scenes.WizardScene<IContext>(
   },
 
   async (ctx: IContext) => {
-    const cityName: string | undefined = (ctx.message as Message.TextMessage)
-      ?.text;
-    const sentCityCoordinates: CityCoordinates | undefined = (
-      ctx.message as Message.LocationMessage
-    )?.location;
+    try {
+      const cityName: string | undefined = (ctx.message as Message.TextMessage)
+        ?.text;
+      const sentCityCoordinates: CityCoordinates | undefined = (
+        ctx.message as Message.LocationMessage
+      )?.location;
 
-    if (!sentCityCoordinates && !cityName) {
-      ctx.reply(
-        'Пожалуйста, введите название города или отправьте его геопозицию.',
-      );
-      ctx.wizard.selectStep(1);
-      return;
-    }
+      if (!sentCityCoordinates && !cityName) {
+        ctx.reply(
+          'Пожалуйста, введите название города или отправьте его геопозицию.',
+        );
+        ctx.wizard.selectStep(1);
+        return;
+      }
 
-    const coordinates: CityCoordinates =
-      sentCityCoordinates ||
-      (await servicePlaces.getGeopositionByCityName(cityName));
-    const weatherData: IWetherDataAPI =
-      await serviceWeather.getWeatherInformation(coordinates);
+      const coordinates: CityCoordinates =
+        sentCityCoordinates ||
+        (await servicePlaces.getGeopositionByCityName(cityName));
+      const weatherData: IWetherDataAPI =
+        await serviceWeather.getWeatherInformation(coordinates);
 
-    const message: string = `Погода в ${weatherData.location.name}(${weatherData.location.region}, ${weatherData.location.country})
+      const message: string = `Погода в ${weatherData.location.name}(${weatherData.location.region}, ${weatherData.location.country})
 ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️
 Температура: ${weatherData.current.temp_c} °C
 Ветер: ${weatherData.current.wind_mph} м/с
@@ -49,9 +50,17 @@ export const WeatherScene = new Scenes.WizardScene<IContext>(
 --------------------------------------
 Последнее обновление: ${weatherData.current.last_updated}`;
 
-    await ctx.replyWithPhoto({ url: 'https://' + weatherData.current.condition.icon.slice(2) },{ caption: message });
+      await ctx.replyWithPhoto(
+        { url: 'https://' + weatherData.current.condition.icon.slice(2) },
+        { caption: message },
+      );
 
-    ctx.scene.leave();
-    return;
+      ctx.scene.leave();
+      return;
+    } catch (error) {
+      await ctx.reply('Что-то пошло не так! Повторите попытку позже.');
+      await ctx.scene.leave();
+      return;
+    }
   },
 );

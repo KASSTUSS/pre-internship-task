@@ -45,34 +45,36 @@ export const PlacesScene = new Scenes.WizardScene<IContext>(
   },
 
   async (ctx: IContext) => {
-    const cityName: string | undefined = (ctx.message as Message.TextMessage)
-      ?.text;
-    const sentCityCoordinates: CityCoordinates | undefined = (
-      ctx.message as Message.LocationMessage
-    )?.location;
+    try {
+        const cityName: string | undefined = (ctx.message as Message.TextMessage)
+        ?.text;
+        const sentCityCoordinates: CityCoordinates | undefined = (
+        ctx.message as Message.LocationMessage
+        )?.location;
 
-    if (!sentCityCoordinates && !cityName) {
-      ctx.reply(
-        'Пожалуйста, введите название города или отправьте его геопозицию.',
-      );
-      ctx.wizard.selectStep(1);
-      return;
+        if (!sentCityCoordinates && !cityName) {
+        ctx.reply(
+            'Пожалуйста, введите название города или отправьте его геопозицию.',
+        );
+        ctx.wizard.selectStep(1);
+        return;
+        }
+
+        if (sentCityCoordinates) {
+        sendPlaces(
+            ctx,
+            await service.getPlacesByCoordinates(sentCityCoordinates),
+        );
+        ctx.scene.leave();
+        return;
+        }
+
+        const cityCoordinates: CityCoordinates =
+        await service.getGeopositionByCityName(cityName);
+        sendPlaces(ctx, await service.getPlacesByCoordinates(cityCoordinates));
+
+        ctx.scene.leave();
+        return;
     }
-
-    if (sentCityCoordinates) {
-      sendPlaces(
-        ctx,
-        await service.getPlacesByCoordinates(sentCityCoordinates),
-      );
-      ctx.scene.leave();
-      return;
-    }
-
-    const cityCoordinates: CityCoordinates =
-      await service.getGeopositionByCityName(cityName);
-    sendPlaces(ctx, await service.getPlacesByCoordinates(cityCoordinates));
-
-    ctx.scene.leave();
-    return;
   },
 );

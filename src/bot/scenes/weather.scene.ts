@@ -1,10 +1,10 @@
 import { Scenes } from 'telegraf';
 import { IContext } from '../context/context.interface';
 import { Message } from 'telegraf/typings/core/types/typegram';
-import { CityCoordinates } from '../../services/places.service';
 import { PlacesService } from '../../services/places.service';
 import { WeatherService } from '../../services/weather.service';
 import { IWetherDataAPI } from '../../types/weather.type';
+import { ICoordinates } from '../../types/coordinates.interface';
 
 const servicePlaces = new PlacesService();
 const serviceWeather = new WeatherService();
@@ -24,7 +24,7 @@ export const WeatherScene = new Scenes.WizardScene<IContext>(
     try {
       const cityName: string | undefined = (ctx.message as Message.TextMessage)
         ?.text;
-      const sentCityCoordinates: CityCoordinates | undefined = (
+      const sentCityCoordinates: ICoordinates | undefined = (
         ctx.message as Message.LocationMessage
       )?.location;
 
@@ -36,9 +36,9 @@ export const WeatherScene = new Scenes.WizardScene<IContext>(
         return;
       }
 
-      const coordinates: CityCoordinates =
+      const coordinates: ICoordinates =
         sentCityCoordinates ||
-        (await servicePlaces.getGeopositionByCityName(cityName));
+        (await servicePlaces.getCoordinatesByCityName(cityName));
       const weatherData: IWetherDataAPI =
         await serviceWeather.getWeatherInformation(coordinates);
 

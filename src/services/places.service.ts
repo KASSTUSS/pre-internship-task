@@ -1,12 +1,13 @@
 import axios, { AxiosResponse } from 'axios';
 import { OpenTripMapAPIConfig } from '../config/openTripMapAPI.config';
-import { ICoordinatesDataAPI } from '../types/coordinates.type';
-import { IPlaceData, IPlaceInformationDataAPI, IPlacesDataAPI } from '../types/place.type';
-
-export interface CityCoordinates {
-  latitude: number;
-  longitude: number;
-}
+import { ICoordinates } from '../types/coordinates.interface';
+import {
+  ICoordinatesDataAPI,
+  IPlaceData,
+  IPlaceInformationDataAPI,
+  IPlacesDataAPI,
+} from '../types/place.type';
+import { ApiError } from '../errors/error.class';
 
 export class PlacesService {
   private token: string;
@@ -18,26 +19,41 @@ export class PlacesService {
   /**
    * The function sends a request to the API to get the coordinates of the city by its name.
    * @param cityName City name
-   * @return {CityCoordinates} City coordinates
+   * @return {ICoordinates} City coordinates
    */
-  public async getGeopositionByCityName(
+  public async getCoordinatesByCityName(
     cityName: string,
-  ): Promise<CityCoordinates> {
+  ): Promise<ICoordinates> {
     try {
       const response: AxiosResponse = await axios.get(
         `https://api.opentripmap.com/0.1/ru/places/geoname?name=${cityName}&apikey=${this.token}`,
       );
-
       const coordinatesData: ICoordinatesDataAPI = response.data;
+      if (coordinatesData.status === 'NOT_FOUND') {
+        throw new ApiError({
+          name: 'NOT_FOUND',
+          message: 'City not found.',
+        });
+      }
 
-      const coordinates: CityCoordinates = {
+      const coordinates: ICoordinates = {
         latitude: coordinatesData.lat,
         longitude: coordinatesData.lon,
       };
 
       return coordinates;
     } catch (error) {
-      throw new Error('Failed to fetch a city coordinates');
+      if (error instanceof ApiError && error.name === 'NOT_FOUND') {
+        throw new ApiError({
+          name: 'NOT_FOUND',
+          message: 'City not found.',
+        });
+      } else {
+        throw new ApiError({
+          name: 'UNKNOWN_ERROR',
+          message: 'Unknown error.',
+        });
+      }
     }
   }
 
@@ -47,11 +63,12 @@ export class PlacesService {
    * @return {IPlaceData[]} Array of places
    */
   public async getPlacesByCoordinates(
-    coordinates: CityCoordinates,
+    coordinates: ICoordinates,
+    placeCategogy: string,
   ): Promise<IPlaceData[]> {
     try {
       const response: AxiosResponse = await axios.get(
-        `https://api.opentripmap.com/0.1/ru/places/radius?radius=5000&lon=${coordinates.longitude}&lat=${coordinates.latitude}&kinds=bars&limit=5&apikey=${this.token}`,
+        `https://api.opentripmap.com/0.1/ru/places/radius?radius=5000&lon=${coordinates.longitude}&lat=${coordinates.latitude}&kinds=${placeCategogy}&limit=5&apikey=${this.token}`,
       );
 
       const placesData: IPlacesDataAPI = response.data;

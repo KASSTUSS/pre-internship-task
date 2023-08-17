@@ -1,11 +1,20 @@
 import { Scenes } from 'telegraf';
 import { IContext } from '../context/context.interface';
 import { Message } from 'telegraf/typings/core/types/typegram';
-import { CityCoordinates } from '../../services/places.service';
 import { PlacesService } from '../../services/places.service';
+import { ApiError } from '../../errors/error.class';
+import {
+  categoriesOfPlacesKeyboard,
+  closePlacesScene,
+  repeatPlacesScene,
+} from '../keyboards/places.keyboard';
 import { IPlaceData, IPlaceInformationDataAPI } from '../../types/place.type';
+import { CategoriesOfPlacesCommands } from '../../constants/categoriesOfPlaces';
+import { ICoordinates } from '../../types/coordinates.interface';
 
 const service = new PlacesService();
+
+let savedCityCoordinates: ICoordinates;
 
 async function sendPlaces(ctx: IContext, places: IPlaceData[]): Promise<void> {
   for (const place of places) {
@@ -18,19 +27,20 @@ async function sendPlaces(ctx: IContext, places: IPlaceData[]): Promise<void> {
         : '';
 
     const message = `➡️ Название: ${placeInformation.name} ⬅️
-${address}
+${address}`;
 
-ГЕОПОЗИЦИЯ ДАННОГО МЕСТА
-⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️`;
-
-    
-    await ctx.reply(message);
-
-    await ctx.replyWithLocation(
-      placeInformation.point.lat,
-      placeInformation.point.lon,
-    );
+    await ctx.sendMessage(message);
   }
+}
+async function sendChooseCategoryOfPlaces(ctx: IContext) {
+  await ctx.reply('Выберите категорию мест:', categoriesOfPlacesKeyboard);
+  ctx.wizard.selectStep(2);
+  return;
+}
+async function sendCInputCityName(ctx: IContext) {
+  await ctx.reply('Введите название города:');
+  await ctx.wizard.selectStep(1);
+  return;
 }
 
 export const PlacesScene = new Scenes.WizardScene<IContext>(
@@ -38,43 +48,82 @@ export const PlacesScene = new Scenes.WizardScene<IContext>(
 
   async (ctx: IContext) => {
     ctx.reply(
-      `Чтобы узнать об интересных местах в вашем городе, отправьте название города или его геопозицию.🗺️`,
+      `Для того чтобы узнать интересные места любого города, введите название города🗺️:`,
     );
     ctx.wizard.next();
-    return;
   },
 
   async (ctx: IContext) => {
+    const cityName: string | undefined = (ctx.message as Message.TextMessage)
+      ?.text;
+
+    if (!cityName) {
+      await ctx.replyWithHTML('<b>Вы отправели некорректное сообщение❗</b>');
+      await sendCInputCityName(ctx);
+      return;
+    }
+
     try {
-        const cityName: string | undefined = (ctx.message as Message.TextMessage)
-        ?.text;
-        const sentCityCoordinates: CityCoordinates | undefined = (
-        ctx.message as Message.LocationMessage
-        )?.location;
+      savedCityCoordinates = await service.getCoordinatesByCityName(cityName);
 
-        if (!sentCityCoordinates && !cityName) {
-        ctx.reply(
-            'Пожалуйста, введите название города или отправьте его геопозицию.',
+      await sendChooseCategoryOfPlaces(ctx);
+      return;
+    } catch (error) {
+      if (error instanceof ApiError && error.name === 'NOT_FOUND') {
+        await ctx.replyWithHTML(
+          '<b>Такой город не найден, попробуйте ввести другой❗</b>',
         );
-        ctx.wizard.selectStep(1);
+        await sendCInputCityName(ctx);
         return;
-        }
+      }
 
-        if (sentCityCoordinates) {
-        sendPlaces(
-            ctx,
-            await service.getPlacesByCoordinates(sentCityCoordinates),
-        );
-        ctx.scene.leave();
-        return;
-        }
-
-        const cityCoordinates: CityCoordinates =
-        await service.getGeopositionByCityName(cityName);
-        sendPlaces(ctx, await service.getPlacesByCoordinates(cityCoordinates));
-
-        ctx.scene.leave();
-        return;
+      await ctx.replyWithHTML(
+        '<b>Что-то пошло не так, повторите попытку позже❗</b>',
+        closePlacesScene,
+      );
+      return;
     }
   },
+
+  async (ctx: IContext) => {
+    const placeCategory: string | undefined = (
+      ctx.message as Message.TextMessage
+    )?.text;
+
+    if (!placeCategory) {
+      await sendChooseCategoryOfPlaces(ctx);
+      return;
+    }
+
+    if(placeCategory in CategoriesOfPlacesCommands) {
+        const places: IPlaceData[] = await service.getPlacesByCoordinates(
+            savedCityCoordinates,
+            CategoriesOfPlacesCommands[placeCategory],
+          );
+  
+          await sendPlaces(ctx, places);
+    }
+
+    ctx.sendMessage('Готово!', repeatPlacesScene);
+    ctx.wizard.next();
+
+    return;
+  },
 );
+
+PlacesScene.hears('Закрыть❌', async (ctx: IContext) => {
+  await ctx.scene.leave();
+  return;
+});
+
+PlacesScene.hears('Выбрать другой город↩️', async (ctx: IContext) => {
+  await sendCInputCityName(ctx);
+  await ctx.wizard.selectStep(1);
+  return;
+});
+
+PlacesScene.hears('Повторить с тем же городом↩️', async (ctx: IContext) => {
+    await sendChooseCategoryOfPlaces(ctx);
+    await ctx.wizard.selectStep(2);
+    return;
+  });

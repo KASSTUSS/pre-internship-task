@@ -14,7 +14,7 @@ export const closePlacesScene = Markup.keyboard([['Закрыть❌']])
   .oneTime();
 
 export const repeatPlacesScene = Markup.keyboard([
-    ['Повторить с тем же городом↩️'],
+    ['Выбрать другую категорию↩️'],
     ['Выбрать другой город↩️'],
     ['Закрыть❌']
 ])

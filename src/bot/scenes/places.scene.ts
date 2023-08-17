@@ -95,13 +95,13 @@ export const PlacesScene = new Scenes.WizardScene<IContext>(
       return;
     }
 
-    if(placeCategory in CategoriesOfPlacesCommands) {
-        const places: IPlaceData[] = await service.getPlacesByCoordinates(
-            savedCityCoordinates,
-            CategoriesOfPlacesCommands[placeCategory],
-          );
-  
-          await sendPlaces(ctx, places);
+    if (placeCategory in CategoriesOfPlacesCommands) {
+      const places: IPlaceData[] = await service.getPlacesByCoordinates(
+        savedCityCoordinates,
+        CategoriesOfPlacesCommands[placeCategory],
+      );
+
+      await sendPlaces(ctx, places);
     }
 
     ctx.sendMessage('Готово!', repeatPlacesScene);
@@ -122,8 +122,8 @@ PlacesScene.hears('Выбрать другой город↩️', async (ctx: IC
   return;
 });
 
-PlacesScene.hears('Повторить с тем же городом↩️', async (ctx: IContext) => {
-    await sendChooseCategoryOfPlaces(ctx);
-    await ctx.wizard.selectStep(2);
-    return;
-  });
+PlacesScene.hears('Выбрать другую категорию↩️', async (ctx: IContext) => {
+  await sendChooseCategoryOfPlaces(ctx);
+  await ctx.wizard.selectStep(2);
+  return;
+});
